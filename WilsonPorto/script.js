@@ -13,6 +13,7 @@ let isDeleting = false;
 // ===== TYPING ANIMATION =====
 function typeText() {
     const typingElement = document.querySelector('.typing-text');
+    if (!typingElement) return;
     const currentText = typingTexts[textIndex];
     
     if (isDeleting) {
@@ -41,7 +42,9 @@ function typeText() {
 // ===== SCROLL PROGRESS BAR =====
 function updateScrollProgress() {
     const scrollProgress = document.getElementById('scroll-progress');
+    if (!scrollProgress) return;
     const windowHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    if (windowHeight <= 0) return;
     const scrolled = (window.scrollY / windowHeight) * 100;
     scrollProgress.style.width = scrolled + '%';
 }
@@ -49,6 +52,7 @@ function updateScrollProgress() {
 // ===== NAVBAR SCROLL EFFECT =====
 function handleNavbarScroll() {
     const navbar = document.getElementById('navbar');
+    if (!navbar) return;
     if (window.scrollY > 100) {
         navbar.classList.add('scrolled');
     } else {
@@ -82,6 +86,7 @@ function updateActiveNavLink() {
 function setupMobileMenu() {
     const hamburger = document.getElementById('hamburger');
     const mobileMenu = document.getElementById('mobile-menu');
+    if (!hamburger || !mobileMenu) return;
     const mobileLinks = document.querySelectorAll('.mobile-menu a');
     
     hamburger.addEventListener('click', () => {
@@ -108,7 +113,14 @@ function setupMobileMenu() {
 // ===== DARK MODE TOGGLE =====
 function setupDarkMode() {
     const darkModeToggle = document.getElementById('dark-mode-toggle');
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (!darkModeToggle) return;
+
+    let savedTheme = 'light';
+    try {
+        savedTheme = localStorage.getItem('theme') || 'light';
+    } catch (e) {
+        // localStorage unavailable (e.g. private browsing)
+    }
     
     document.documentElement.setAttribute('data-theme', savedTheme);
     
@@ -117,7 +129,11 @@ function setupDarkMode() {
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         
         document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
+        try {
+            localStorage.setItem('theme', newTheme);
+        } catch (e) {
+            // localStorage unavailable
+        }
     });
 }
 
@@ -143,7 +159,11 @@ function animateCounters() {
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
-                const target = parseInt(entry.target.getAttribute('data-target'));
+                const target = parseInt(entry.target.getAttribute('data-target'), 10);
+                if (isNaN(target) || target <= 0) {
+                    observer.unobserve(entry.target);
+                    return;
+                }
                 const duration = 2000;
                 const increment = target / (duration / 16);
                 let current = 0;
@@ -257,12 +277,14 @@ function setupProjectModals() {
     const modal = document.getElementById('project-modal');
     const modalBody = document.getElementById('modal-body');
     const closeBtn = document.querySelector('.modal-close');
+    if (!modal || !modalBody || !closeBtn) return;
     const viewProjectBtns = document.querySelectorAll('.btn-view-project');
     
     viewProjectBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const projectId = btn.getAttribute('data-project');
             const project = projectDetails[projectId];
+            if (!project) return;
             
             modalBody.innerHTML = `
                 <h2 style="color: var(--primary-purple); margin-bottom: 1rem;">${project.title}</h2>
@@ -307,6 +329,7 @@ function setupProjectModals() {
 function setupContactForm() {
     const form = document.getElementById('contact-form');
     const formStatus = document.getElementById('form-status');
+    if (!form || !formStatus) return;
     
     form.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -367,6 +390,7 @@ function setupContactForm() {
 // ===== BACK TO TOP BUTTON =====
 function setupBackToTop() {
     const backToTopBtn = document.getElementById('back-to-top');
+    if (!backToTopBtn) return;
     
     window.addEventListener('scroll', () => {
         if (window.scrollY > 500) {
@@ -420,22 +444,27 @@ function setupSmoothScroll() {
 
 // ===== INITIALIZE ALL FUNCTIONS =====
 document.addEventListener('DOMContentLoaded', () => {
-    // Start typing animation
-    typeText();
-    
-    // Setup all interactive features
-    setupMobileMenu();
-    setupDarkMode();
-    setupProjectFilter();
-    setupProjectModals();
-    setupContactForm();
-    setupBackToTop();
-    setupSmoothScroll();
-    setupScrollAnimations();
-    
-    // Animate skill bars and counters on scroll
-    animateSkillBars();
-    animateCounters();
+    const initFunctions = [
+        ['typeText', typeText],
+        ['setupMobileMenu', setupMobileMenu],
+        ['setupDarkMode', setupDarkMode],
+        ['setupProjectFilter', setupProjectFilter],
+        ['setupProjectModals', setupProjectModals],
+        ['setupContactForm', setupContactForm],
+        ['setupBackToTop', setupBackToTop],
+        ['setupSmoothScroll', setupSmoothScroll],
+        ['setupScrollAnimations', setupScrollAnimations],
+        ['animateSkillBars', animateSkillBars],
+        ['animateCounters', animateCounters]
+    ];
+
+    initFunctions.forEach(([name, fn]) => {
+        try {
+            fn();
+        } catch (error) {
+            console.error(`Failed to initialize ${name}:`, error);
+        }
+    });
     
     // Add scroll event listeners
     window.addEventListener('scroll', () => {
