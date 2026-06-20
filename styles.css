@@ -420,6 +420,24 @@ body {
     100% { opacity: 0; top: 20px; }
 }
 
+/* ===== SHARED CARD & HOVER UTILITIES ===== */
+.card-base {
+    padding: var(--spacing-md);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-normal);
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.hover-glow:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-glow);
+}
+
 /* ===== SECTION STYLES ===== */
 section {
     padding: var(--spacing-xl) 0;
@@ -523,11 +541,6 @@ section {
     transition: all var(--transition-fast);
 }
 
-.strength-badge:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
-}
-
 /* ===== SKILLS SECTION ===== */
 .skills-grid {
     display: grid;
@@ -538,15 +551,6 @@ section {
 
 .skill-category {
     background: var(--light-card);
-    padding: var(--spacing-md);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    transition: transform var(--transition-normal);
-}
-
-.skill-category:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg);
 }
 
 .skill-category h3 {
@@ -602,6 +606,7 @@ section {
     transform: scale(1.05);
     box-shadow: var(--shadow-glow);
 }
+
 
 .stat-number {
     font-size: 3rem;
@@ -677,6 +682,7 @@ section {
     transform: translateY(-10px);
     box-shadow: var(--shadow-lg);
 }
+
 
 .project-image {
     height: 200px;

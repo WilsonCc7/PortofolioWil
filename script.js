@@ -1,3 +1,31 @@
+// ===== SHARED UTILITIES =====
+function createScrollObserver(selector, onIntersect, threshold = 0.5) {
+    const elements = document.querySelectorAll(selector);
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                onIntersect(entry.target);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold });
+    elements.forEach(el => observer.observe(el));
+}
+
+function validateField(fieldId, test, errorMsg) {
+    const value = document.getElementById(fieldId).value.trim();
+    if (!test(value)) {
+        document.querySelector(`#${fieldId} + .error-message`).textContent = errorMsg;
+        return false;
+    }
+    return true;
+}
+
+function setMenuState(hamburger, mobileMenu, active) {
+    hamburger.classList[active ? 'add' : 'remove']('active');
+    mobileMenu.classList[active ? 'add' : 'remove']('active');
+}
+
 // ===== GLOBAL VARIABLES =====
 const typingTexts = [
     'Software Developer',
@@ -82,25 +110,19 @@ function updateActiveNavLink() {
 function setupMobileMenu() {
     const hamburger = document.getElementById('hamburger');
     const mobileMenu = document.getElementById('mobile-menu');
-    const mobileLinks = document.querySelectorAll('.mobile-menu a');
     
     hamburger.addEventListener('click', () => {
-        hamburger.classList.toggle('active');
-        mobileMenu.classList.toggle('active');
+        const isActive = hamburger.classList.contains('active');
+        setMenuState(hamburger, mobileMenu, !isActive);
     });
     
-    mobileLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            hamburger.classList.remove('active');
-            mobileMenu.classList.remove('active');
-        });
+    document.querySelectorAll('.mobile-menu a').forEach(link => {
+        link.addEventListener('click', () => setMenuState(hamburger, mobileMenu, false));
     });
     
-    // Close mobile menu when clicking outside
     document.addEventListener('click', (e) => {
         if (!hamburger.contains(e.target) && !mobileMenu.contains(e.target)) {
-            hamburger.classList.remove('active');
-            mobileMenu.classList.remove('active');
+            setMenuState(hamburger, mobileMenu, false);
         }
     });
 }
@@ -123,48 +145,28 @@ function setupDarkMode() {
 
 // ===== SKILL BARS ANIMATION =====
 function animateSkillBars() {
-    const skillBars = document.querySelectorAll('.skill-progress');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const progress = entry.target.getAttribute('data-progress');
-                entry.target.style.width = progress + '%';
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.5 });
-    
-    skillBars.forEach(bar => observer.observe(bar));
+    createScrollObserver('.skill-progress', (el) => {
+        el.style.width = el.getAttribute('data-progress') + '%';
+    });
 }
 
 // ===== ANIMATED COUNTERS =====
 function animateCounters() {
-    const counters = document.querySelectorAll('.stat-number');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const target = parseInt(entry.target.getAttribute('data-target'));
-                const duration = 2000;
-                const increment = target / (duration / 16);
-                let current = 0;
-                
-                const updateCounter = () => {
-                    current += increment;
-                    if (current < target) {
-                        entry.target.textContent = Math.floor(current);
-                        requestAnimationFrame(updateCounter);
-                    } else {
-                        entry.target.textContent = target;
-                    }
-                };
-                
-                updateCounter();
-                observer.unobserve(entry.target);
+    createScrollObserver('.stat-number', (el) => {
+        const target = parseInt(el.getAttribute('data-target'));
+        const increment = target / (2000 / 16);
+        let current = 0;
+        const updateCounter = () => {
+            current += increment;
+            if (current < target) {
+                el.textContent = Math.floor(current);
+                requestAnimationFrame(updateCounter);
+            } else {
+                el.textContent = target;
             }
-        });
-    }, { threshold: 0.5 });
-    
-    counters.forEach(counter => observer.observe(counter));
+        };
+        updateCounter();
+    });
 }
 
 // ===== PROJECT FILTER =====
@@ -307,56 +309,26 @@ function setupProjectModals() {
 function setupContactForm() {
     const form = document.getElementById('contact-form');
     const formStatus = document.getElementById('form-status');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         
-        // Clear previous errors
         document.querySelectorAll('.error-message').forEach(el => el.textContent = '');
         formStatus.textContent = '';
         formStatus.className = '';
         
-        // Get form values
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const subject = document.getElementById('subject').value.trim();
-        const message = document.getElementById('message').value.trim();
-        
-        let isValid = true;
-        
-        // Validate name
-        if (name.length < 2) {
-            document.querySelector('#name + .error-message').textContent = 'Name must be at least 2 characters';
-            isValid = false;
-        }
-        
-        // Validate email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            document.querySelector('#email + .error-message').textContent = 'Please enter a valid email address';
-            isValid = false;
-        }
-        
-        // Validate subject
-        if (subject.length < 3) {
-            document.querySelector('#subject + .error-message').textContent = 'Subject must be at least 3 characters';
-            isValid = false;
-        }
-        
-        // Validate message
-        if (message.length < 10) {
-            document.querySelector('#message + .error-message').textContent = 'Message must be at least 10 characters';
-            isValid = false;
-        }
+        const isValid = [
+            validateField('name', v => v.length >= 2, 'Name must be at least 2 characters'),
+            validateField('email', v => emailRegex.test(v), 'Please enter a valid email address'),
+            validateField('subject', v => v.length >= 3, 'Subject must be at least 3 characters'),
+            validateField('message', v => v.length >= 10, 'Message must be at least 10 characters')
+        ].every(Boolean);
         
         if (isValid) {
-            // Simulate form submission
             formStatus.textContent = 'Message sent successfully! I\'ll get back to you soon.';
             formStatus.className = 'success';
             form.reset();
-            
-            // In a real application, you would send the data to a backend here
-            // Example: fetch('/api/contact', { method: 'POST', body: formData })
         } else {
             formStatus.textContent = 'Please fix the errors above';
             formStatus.className = 'error';
@@ -386,19 +358,11 @@ function setupBackToTop() {
 
 // ===== INTERSECTION OBSERVER FOR ANIMATIONS =====
 function setupScrollAnimations() {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in');
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1 });
-    
-    // Observe all sections and cards
-    document.querySelectorAll('section, .project-card, .initiative-card, .timeline-item').forEach(el => {
-        observer.observe(el);
-    });
+    createScrollObserver(
+        'section, .project-card, .initiative-card, .timeline-item',
+        (el) => el.classList.add('fade-in'),
+        0.1
+    );
 }
 
 // ===== SMOOTH SCROLL FOR NAVIGATION LINKS =====
