@@ -49,10 +49,6 @@
 
 .timeline-content {
     background: var(--light-card);
-    padding: var(--spacing-md);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    transition: all var(--transition-normal);
 }
 
 .timeline-content:hover {
@@ -134,17 +130,11 @@
 
 .initiative-card {
     background: var(--light-bg);
-    padding: var(--spacing-md);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    transition: all var(--transition-normal);
     border: 2px solid transparent;
 }
 
 .initiative-card:hover {
-    transform: translateY(-5px);
     border-color: var(--primary-purple);
-    box-shadow: var(--shadow-glow);
 }
 
 .initiative-icon {
@@ -185,9 +175,6 @@
     gap: var(--spacing-sm);
     align-items: flex-start;
     background: var(--light-card);
-    padding: var(--spacing-md);
-    border-radius: var(--radius-lg);
-    transition: all var(--transition-fast);
 }
 
 .contact-item:hover {
@@ -234,16 +221,12 @@
 .social-link:hover {
     background: var(--primary-purple);
     color: white;
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-glow);
 }
 
 /* Contact Form */
 .contact-form {
     background: var(--light-card);
     padding: var(--spacing-lg);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
 }
 
 .form-row {
